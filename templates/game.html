@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Werewolf by McToel</title>
+    <link rel="stylesheet" type="text/css" href="static/styles/werewolf.css">
+</head>
+
+<body id='main_body'>
+    <div class="table_container">
+        <table class="tg">
+            <tr>
+                <th>Your name</th>
+                <th>Your role</th>
+                <th>Your last Message</th>
+            </tr>
+            <tr>
+                <th id="username_head"></th>
+                <th id="role_head"></th>
+                <td id="msg_head"></td>
+            </tr>
+        </table>
+        <div style="height: 20px;"></div>
+        <table class="tg" id="main_table">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Private Vote</th>
+                    <th>Private Votes</th>
+                    <th>Public Vote</th>
+                    <th>Public Votes</th>
+                    <th>Send Message</th>
+                </tr>
+            </thead>
+            <tbody id="tbody">
+            </tbody>
+        </table><br/>
+        <form action="logout">
+            <button style="width: 100%;" type="submit" value="logout">Logout</button>
+        </form><br /><br/>
+    </div>
+</body>
+
+<!-- SocketIO -->
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<!-- SocketIO -->
+
+<script>
+
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+
+    window.setInterval(function () {
+        socket.emit('update_data')
+    }, 2000);
+
+    var socket = io();
+
+    function private_vote() {
+        socket.emit('private_vote', {
+            "target_user": event.target.parentElement['target_user'].value
+        })
+    }
+
+    function public_vote() {
+        socket.emit('public_vote', {
+            "target_user": event.target.parentElement['target_user'].value
+        })
+    }
+
+    function send_msg() {
+        socket.emit('send_msg', {
+            "target_user": event.target.parentElement['target_user'].value,
+            "msg": event.target.parentElement['msg'].value
+        })
+    }
+
+    socket.on('flash', async function () {
+        var element = document.getElementById('main_body');
+        for (var i = 0; i < 3; i++) {
+            element.style.backgroundColor = 'red';
+            await sleep(100);
+            element.style.backgroundColor = 'white';
+            await sleep(100);
+        }
+    });
+
+    socket.on('update_head', function (data) {
+        document.getElementById("username_head").innerHTML = data['name'];
+        document.getElementById("role_head").innerHTML = data['role'];
+        document.getElementById("msg_head").innerHTML = data['msg'];
+    });
+
+    socket.on('update_display', function (data) {
+        document.getElementById('tbody').innerHTML = '';
+
+        for (var key in data) {
+            var row = '<tr id="table_row">';
+
+            if (data[key]['alive']) {
+                //Username
+                row += '<th>' + data[key]['name'] + '</th>';
+
+                // private vote button
+                row += '<td><form class="pretty_form"><button type="button" onclick="private_vote();" name="target_user" value="' + data[key]['name'] + '">Vote</button></form></td>';
+                // private votes 
+                row += '<td><div style="width: max-content;">';
+                for (var i = 0; i < data[key]['private_votes'].length; i++) {
+                    row += '<span class="Voter">' + data[key]['private_votes'][i] + '</span><br/>';
+                }
+                row += '</div></td>';
+
+                // public vote button
+                row += '<td><form class="pretty_form"><button type="button" onclick="public_vote();" name="target_user" value="' + data[key]['name'] + '">Vote</button></form></td>';
+                // public votes 
+                row += '<td><div style="width: max-content;">';
+                for (var i = 0; i < data[key]['public_votes'].length; i++) {
+                    row += '<span class="Voter">' + data[key]['public_votes'][i] + '</span><br/>';
+                }
+                row += '</div></td>';
+            }
+            else {
+                // username
+                row += '<td>' + data[key]['name'] + '</td>';
+                // private vote button
+                row += '<td></td>';
+                // private votes
+                row += '<td></td>';
+                // pubulic vote button
+                row += '<td></td>';
+                // pubulic votes
+                row += '<td></td>';
+            }
+
+            // send message
+            row += '<td><form class="pretty_form"><input class="pretty_textbox" type="text" placeholder="Message" name="msg"></input><button type="button" onclick="send_msg();" name="target_user" value="' + data[key]['name'] + '">Send</button></form></td>'
+            row += '</tr>';
+
+            $('#tbody').append(row);
+        }
+
+        // for (var key1 in data) {
+        //     var row = '<tr id="table_row">';
+        //     if (data[key1]['alive'] == true) {
+        //         // username
+        //         row += '<td>' + data[key1]['name'] + '</td>';
+        //         // private vote button
+        //         row += '<td><form><button type="button" onclick="private_vote();" name="target_user" value="' + data[key1]['name'] + '">Vote</button></form></td>';
+        //         // private votes 
+        //         row += '<td>';
+        //         for (var i = 0; i < data[key1]['private_votes'].length; i++) {
+        //             row += data[key1]['private_votes'][i] + '<br>';
+        //         }
+        //         row += '</td>';
+        //         // public vote button
+        //         row += '<td><form><button type="button" onclick="public_vote();" name="target_user" value="' + data[key1]['name'] + '">Vote</button></form></td>';
+        //         // public votes
+        //         row += '<td>';
+        //         for (var i = 0; i < data[key1]['public_votes'].length; i++) {
+        //             row += data[key1]['public_votes'][i] + '<br>';
+        //         }
+        //         row += '</td>';
+        //     }
+        //     else {
+        //         // username (crossed out)
+        //         row += '<td><s>' + data[key1]['name'] + '</s></td>';
+        //         // no vote info and buttons
+        //         row += '<td></td> <td></td> <td></td> <td></td>';
+        //     }
+
+
+        //     row += '<td><form><input type="text" placeholder="Message" name="msg"></input><button type="button" onclick="send_msg();" name="target_user" value="' + data[key1]['name'] + '">Send</button></form></td>'
+        //     row += '</tr>';
+
+        //     $('#tbody').append(row);
+        // }
+    });
+
+    if (socket)
+        socket.emit('get-session');
+</script>
+
+</html>

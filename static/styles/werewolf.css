@@ -1,0 +1,73 @@
+.tg {
+    border-collapse: collapse;
+    border-spacing: 0;
+    width: 100%;
+}
+
+.tg td {
+    padding: 10px 5px;
+    border-style: solid;
+    border-width: 1px;
+    border-color: black;
+    vertical-align: middle;
+    text-align: center;
+}
+
+.tg th {
+    padding: 10px 5px;
+    border-style: solid;
+    border-width: 1px;
+    border-color: black;
+    vertical-align: middle;
+}
+
+.table_container {
+    width: max-content;
+    margin: auto;
+}
+
+.pretty_form {
+    margin: auto;
+}
+
+.pretty_textbox {
+    padding: 5px 5px;
+    margin: 8px 0;
+    box-sizing: border-box;
+    border: 2px solid #ccc;
+    -webkit-transition: 0.5s;
+    transition: 0.5s;
+    outline: none;
+}
+
+.pretty_textbox:focus {
+    border: 2px solid #555;
+}
+
+button {
+    background-color: lightgray;
+    cursor: pointer;
+    padding: 5px 5px;
+    margin: 8px 0;
+    box-sizing: border-box;
+    border: 2px solid #ccc;
+    -webkit-transition: 0.5s;
+    transition: 0.5s;
+    outline: none;
+}
+
+Button:hover {
+    border: 2px solid #555;
+}
+
+Button:active {
+    position: relative;
+    top: 1px;
+}
+
+.voters {
+    width: 100%;
+    padding: 3px;
+    border-style: solid;
+    border-color: lightgray;
+}
