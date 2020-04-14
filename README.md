@@ -2,7 +2,7 @@
 A Python server that helps you to play werewolf over a video or voice call
 
 ## Installation
-- Install [Python 3.7](https://www.python.org/downloads/release/python-377/)
+- Install [Python 3.7](https://www.python.org/downloads/release/python-377/) (Don't forget to add it to PATH)
 - clone repository
   - either using git or just by downloading and unpacking the repo
 - open a terminal in the cloned repo
