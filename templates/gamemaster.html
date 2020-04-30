@@ -32,7 +32,7 @@
                     <th>Send Message</th>
                 </tr>
             </thead>
-            <tbody id="tbody">
+            <tbody id="user_table">
             </tbody>
         </table><br/>
         <button style="width: 100%;" type="button" onclick="reset_votes();">Reset Votes</button><br />
@@ -55,6 +55,12 @@
 <!-- SocketIO -->
 
 <script>
+    document.addEventListener('DOMContentLoaded', request_game_data, false);
+
+    function request_game_data() {
+        socket.emit('load_game');
+    }
+
     $(function () {
         $('#add').click(function () {
             var inner_html = '<option value="' + $('#role_text_box').val() + '">' + $('#role_text_box').val() + '</option>'
@@ -66,15 +72,9 @@
         $("#selected_roles option:selected").remove();
     });
 
-    var base_url = location.protocol + "//" + location.hostname + ":5000/";
-
     function sleep(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
-
-    window.setInterval(function () {
-        socket.emit('update_gamemaster')
-    }, 1000);
 
     var socket = io();
 
@@ -112,6 +112,39 @@
         })
     }
 
+    function user_table_row(data) {
+        current_user = data['name'];
+        var row = '<tr id="' + current_user + '_row">';
+        //Username
+        row += '<th id="' + current_user + '_name" class="username">' + current_user + '</th>';
+        //Role
+        row += '<td id="' + current_user + '_role">' + data['role'] + '</td>'
+        // private votes 
+        row += '<td><div id="' + current_user + '_votes" style="width: max-content;"></div></td>';
+        // poke button
+        row += '<td id="' + current_user + '_poke_button"><form class="pretty_form"><button type="button" onclick="poke();" name="target_user" value="' + current_user + '">Poke</button></form></td>';
+        // kill
+        row += '<td id="' + current_user + '_kill_button"><form class="pretty_form"><button type="button" onclick="kill();" name="target_user" value="' + current_user + '">Kill</button></form></td>';
+        // send msg
+        row += '<td><form class="pretty_form"><input class="pretty_textbox" type="text" placeholder="Message" name="msg"></input><button type="button" onclick="send_msg();" name="target_user" value="' + current_user + '">Send</button></form></td>'
+        row += '</tr>'
+        return row;
+    }
+
+    function remove_vote(data) {
+        try {
+            var vote = document.getElementById(data['voter'] + '_vote');
+            vote.remove();
+        } catch (error) { }
+    }
+
+    function remove_user(data) {
+        try {
+            var vote = document.getElementById(data['name'] + '_row');
+            vote.remove();
+        } catch (error) { }
+    }
+
     socket.on('flash', async function () {
         var element = document.getElementById('main_body');
         for (var i = 0; i < 3; i++) {
@@ -122,53 +155,50 @@
         }
     });
 
-    socket.on('update_gamemaster_display', function (data) {
-        document.getElementById('tbody').innerHTML = '';
-
-        for (var key in data) {
-            var row = '<tr id="table_row">';
-
-            if (data[key]['alive']) {
-                //Username
-                row += '<th>' + data[key]['name'] + '</th>';
-                //Role
-                row += '<td>' + data[key]['role'] + '</td>';
-                // Votes
-                row += '<td><div style="width: max-content;">';
-                for (var i = 0; i < data[key]['votes'].length; i++) {
-                    row += '<span class="Voter">' + data[key]['votes'][i] + '</span><br/>';
-                }
-                row += '</div></td>';
-                // poke button
-                row += '<td><form class="pretty_form"><button type="button" onclick="poke();" name="target_user" value="' + data[key]['name'] + '">Poke</button></form></td>';
-                // kill
-                row += '<td><form class="pretty_form"><button type="button" onclick="kill();" name="target_user" value="' + data[key]['name'] + '">Kill</button></form></td>';
-            }
-            else {
-                //Username
-                row += '<td>' + data[key]['name'] + '</td>';
-                //Role
-                row += '<td>' + data[key]['role'] + '</td>';
-                // Votes
-                row += '<td></td>';
-                // poke button
-                row += '<td></td>';
-                // kill
-                row += '<td></td>';
-            }
-
-            // send message
-            row += '<td><form class="pretty_form"><input class="pretty_textbox" type="text" placeholder="Message" name="msg"></input><button type="button" onclick="send_msg();" name="target_user" value="' + data[key]['name'] + '">Send</button></form></td>'
-            row += '</tr>';
-
-            $('#tbody').append(row);
-        }
+    socket.on('append_user', function (data) {
+        remove_user(data);
+        var new_row = user_table_row(data);
+        $('#user_table').append(new_row);
     });
 
-    socket.on('update_head', function (data) {
-        document.getElementById("username_head").innerHTML = data['name'];
-        document.getElementById("role_head").innerHTML = data['role'];
+    socket.on('remove_user', function (data) {
+        $('#' + data['target'] + '_row').remove();
+    });
+
+    socket.on('kill_user', function (data) {
+        var user = data['target']
+        document.getElementById(user + '_name').innerHTML = '<del>' + user + '</del>';
+        document.getElementById(user + '_poke_button').innerHTML = '';
+        document.getElementById(user + '_kill_button').innerHTML = '';
+    });
+
+    socket.on('receive_msg', function (data) {
         document.getElementById("msg_head").innerHTML = data['msg'];
+    });
+
+    socket.on('update_vote', function (data) {
+        remove_vote(data);
+
+        var votes_div = document.getElementById(data['target'] + '_votes');
+        var votes_entry = '<span id="' + data['voter'] + '_vote" class="Voter">' + data['voter'] + '<br/></span>';
+        votes_div.insertAdjacentHTML('beforeend', votes_entry);
+    });
+
+    socket.on('remove_vote', function (data) {
+        remove_vote(data)
+    });
+
+    socket.on('set_role', function (data) {
+        var username = data['name'];
+        document.getElementById(username + '_role').innerHTML = data['role'];
+    })
+
+    socket.on('set_name', function (data) {
+        document.getElementById("username_head").innerHTML = data['name'];
+    })
+
+    socket.on('join_role_rooms', function (data) {
+        socket.emit('join_role_rooms', data);
     });
 
     if (socket)
