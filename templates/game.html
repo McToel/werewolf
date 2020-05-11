@@ -85,6 +85,11 @@
         document.getElementById(user + '_vote_buttons').innerHTML = '';
         // document.getElementById(user + '_public_vote_button').innerHTML = '';
     });
+
+    socket.on('set_role', function (data) {
+        role = data['role'];
+        display_head();
+    });
 </script>
 
 </html>

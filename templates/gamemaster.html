@@ -122,6 +122,13 @@
         document.getElementById(user + '_buttons').innerHTML = '';
         // document.getElementById(user + '_kill_button').innerHTML = '';
     });
+
+    socket.on('set_role', function (data) {
+        user = data['name']
+        try {
+            document.getElementById(user + '_role').innerHTML = data['role'];
+        } catch (error) { }
+    });
 </script>
 
 </html>

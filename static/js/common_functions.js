@@ -82,11 +82,6 @@ socket.on('set_name', function (data) {
     display_head();
 })
 
-socket.on('set_role', function (data) {
-    role = data['role'];
-    display_head();
-})
-
 socket.on('receive_msg', function (data) {
     last_message = data['msg'];
     display_head();

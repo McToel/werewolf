@@ -9,6 +9,7 @@ from flask_cors import CORS
 
 import json
 import random
+from time import sleep
 
 app = Flask(__name__)
 
@@ -143,6 +144,7 @@ def join_rooms(json_data):
     username = current_user.name
     role = users[username].role
     join_room(role)
+    sleep(2)
     emit('set_role', {'role':role, 'name':username}, room=role)
 
 @socketio.on('private_vote')
@@ -178,7 +180,10 @@ def handle_set_roles(json_data):
     random.shuffle(roles)
     if len(roles) == len(users) - 1:
         for key in users:
-            if users[key].name != 'gamemaster':
+            username = users[key].name
+            if username != 'gamemaster':
+                emit('append_user', users[username].as_json, room='_users', namespace='')
+                emit('append_user', users[username].as_gamemaster_json, room=users['gamemaster'].sid, namespace='')
                 old_role = users[key].role
                 users[key].role = roles.pop()
                 join_room(users[key].role)
