@@ -1,6 +1,5 @@
 .tg {
     border-collapse: collapse;
-    border-spacing: 0;
     width: 100%;
 }
 
@@ -22,12 +21,12 @@
 }
 
 .table_container {
-    width: max-content;
+    max-width: 60em;
     margin: auto;
 }
 
 .pretty_form {
-    margin: auto;
+    margin: 0.2em;
 }
 
 .pretty_textbox {
@@ -44,11 +43,18 @@
     border: 2px solid #555;
 }
 
+.button_container {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: auto;
+}
+
 button {
     background-color: lightgray;
     cursor: pointer;
     padding: 5px 5px;
-    margin: 8px 0;
+    margin: 0 0;
     box-sizing: border-box;
     border: 2px solid #ccc;
     -webkit-transition: 0.5s;
@@ -65,9 +71,20 @@ Button:active {
     top: 1px;
 }
 
-.voters {
-    width: 100%;
+.voter {
+    /* width: 100%; */
     padding: 3px;
-    border-style: solid;
-    border-color: lightgray;
+    /* border-style: solid; */
+    background-color: lightgray;
+    /* border-color: gray; */
+}
+
+.username {
+    max-width: 10em;
+    word-wrap: break-word;
+}
+
+.msg {
+    width: 10em;
+    word-wrap: break-word;
 }

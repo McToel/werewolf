@@ -130,7 +130,10 @@ def test_connect():
 
 @socketio.on('disconnect')
 def test_disconnect():
-    print(current_user.name, 'disconnected')
+    try:
+        print(current_user.name, 'disconnected')
+    except:
+        print('User disconnected')
 
 @socketio.on('join_role_rooms')
 def join_rooms(json_data):

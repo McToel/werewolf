@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
 
 <head>
     <title>Werewolf by McToel</title>
@@ -15,7 +16,7 @@
                 <th>Your last Message</th>
             </tr>
             <tr>
-                <th id="username_head"></th>
+                <th id="username_head" class="username"></th>
                 <th id="role_head"></th>
                 <td id="msg_head"></td>
             </tr>
@@ -25,10 +26,8 @@
             <thead>
                 <tr>
                     <th>Username</th>
-                    <th>Private Vote</th>
-                    <th>Private Votes</th>
-                    <th>Public Vote</th>
-                    <th>Public Votes</th>
+                    <th>Vote</th>
+                    <th>Votes</th>
                     <th>Send Message</th>
                 </tr>
             </thead>
@@ -45,20 +44,9 @@
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <!-- SocketIO -->
+<script src="static/js/common_functions.js"></script>
 
 <script>
-    document.addEventListener('DOMContentLoaded', request_game_data, false);
-
-    function request_game_data() {
-        socket.emit('load_game');
-    }
-
-    function sleep(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
-    }
-
-    var socket = io();
-
     function private_vote() {
         socket.emit('private_vote', {
             "target_user": event.target.parentElement['target_user'].value
@@ -71,103 +59,32 @@
         })
     }
 
-    function send_msg() {
-        socket.emit('send_msg', {
-            "target_user": event.target.parentElement['target_user'].value,
-            "msg": event.target.parentElement['msg'].value
-        })
-    }
-
     function user_table_row(data) {
         current_user = data['name'];
         var row = '<tr id="' + current_user + '_row">';
         //Username
         row += '<th id="' + current_user + '_name" class="username">' + current_user + '</th>';
-        // private vote button
-        row += '<td id="' + current_user + '_private_vote_button"><form class="pretty_form"><button type="button" onclick="private_vote();" name="target_user" value="' + current_user + '">Vote</button></form></td>';
-        // private votes 
-        row += '<td><div id="' + current_user + '_private_votes" style="width: max-content;"></div></td>';
-        // public vote button
-        row += '<td id="' + current_user + '_public_vote_button"><form class="pretty_form"><button type="button" onclick="public_vote();" name="target_user" value="' + current_user + '">Vote</button></form></td>';
-        // public votes 
-        row += '<td><div id="' + current_user + '_public_votes" class="public_votes" style="width: max-content;"></div></td>';
+        // vote buttons
+        row += '<td id="' + current_user + '_vote_buttons">';
+        row += '<div class="button_container">';
+        row +=     '<form class="pretty_form"><button type="button" onclick="private_vote();" name="target_user" value="' + current_user + '">Private</button></form>';
+        row +=     '<form class="pretty_form"><button type="button" onclick="public_vote();" name="target_user" value="' + current_user + '">Public</button></form>';
+        row += '</div>';
+        row += '</td>';
+        // votes 
+        row += '<td><div id="' + current_user + '_votes" class="votes"></div></td>';
         // send msg
         row += '<td><form class="pretty_form"><input class="pretty_textbox" type="text" placeholder="Message" name="msg"></input><button type="button" onclick="send_msg();" name="target_user" value="' + current_user + '">Send</button></form></td>'
         row += '</tr>'
         return row;
     }
 
-    function remove_vote(data) {
-        try {
-            var vote = document.getElementById(data['voter'] + data['type']);
-            vote.remove();
-        } catch (error) { }
-    }
-
-    function remove_user(data) {
-        try {
-            var vote = document.getElementById(data['name'] + '_row');
-            vote.remove();
-        } catch (error) { }
-    }
-
-    socket.on('flash', async function () {
-        var element = document.getElementById('main_body');
-        for (var i = 0; i < 3; i++) {
-            element.style.backgroundColor = 'red';
-            await sleep(100);
-            element.style.backgroundColor = 'white';
-            await sleep(100);
-        }
-    });
-
-    socket.on('receive_msg', function (data) {
-        document.getElementById("msg_head").innerHTML = data['msg'];
-    });
-
-    socket.on('append_user', function (data) {
-        remove_user(data);
-        var new_row = user_table_row(data);
-        $('#user_table').append(new_row);
-    });
-
-    socket.on('remove_user', function (data) {
-        $('#' + data['target'] + '_row').remove();
-    });
-
     socket.on('kill_user', function (data) {
         var user = data['target']
         document.getElementById(user + '_name').innerHTML = '<del>' + user + '</del>';
-        document.getElementById(user + '_private_vote_button').innerHTML = '';
-        document.getElementById(user + '_public_vote_button').innerHTML = '';
+        document.getElementById(user + '_vote_buttons').innerHTML = '';
+        // document.getElementById(user + '_public_vote_button').innerHTML = '';
     });
-
-    socket.on('update_vote', function (data) {
-        remove_vote(data);
-
-        var votes_div = document.getElementById(data['target'] + data['type'] + 's');
-        var votes_entry = '<span id="' + data['voter'] + data['type'] + '" class="Voter">' + data['voter'] + '<br/></span>';
-        votes_div.insertAdjacentHTML('beforeend', votes_entry);
-    });
-
-    socket.on('remove_vote', function (data) {
-        remove_vote(data)
-    });
-
-    socket.on('set_role', function (data) {
-        document.getElementById("role_head").innerHTML = data['role'];
-    })
-
-    socket.on('set_name', function (data) {
-        document.getElementById("username_head").innerHTML = data['name'];
-    })
-
-    socket.on('join_role_rooms', function (data) {
-        socket.emit('join_role_rooms', data);
-    });
-
-    if (socket)
-        socket.emit('get-session');
 </script>
 
 </html>
