@@ -1,0 +1,39 @@
+<div id="role_setter">
+    <input style="width: 100%;" class="pretty_textbox" type="text" placeholder="Role" id="role_text_box"><br />
+    <div style="display: flex;">
+        <button class="pretty_button" v-on:click="add" style="width: 49%; margin-right: auto;" type="button" id="add" value="Add">Add</button>
+        <button class="pretty_button" v-on:click="remove" style="width: 49%;" type="button" id="remove" value="Remove">Remove</button>
+    </div>
+    <br />
+    <select id="selected_roles" size="4" multiple="multiple" style="height : 200px; width: 100%;">
+        <option v-for='role in roles' :value="role"> [[ role ]] </option>
+    </select><br />
+    <button class="pretty_button" v-on:click="set_roles" style="width: 100%;" type="button">Set Roles</button><br />
+</div>
+
+<script>
+
+    var role_setter = new Vue({
+        el: '#role_setter',
+        delimiters: ['[[', ']]'],
+        data: { roles: ['lol'] },
+        methods: {
+            add: function () {
+                this.roles.push(document.getElementById('role_text_box').value);
+                this.$forceUpdate();
+            },
+            remove: function () {
+                if ((index = document.getElementById("selected_roles").selectedIndex) !== -1) {
+                    this.roles.splice(index, 1);
+                    this.$forceUpdate();
+                }
+            },
+            set_roles: function () {
+                socket.emit('set_roles', {
+                    "roles": this.roles
+                });
+            }
+        }
+    })
+
+</script>

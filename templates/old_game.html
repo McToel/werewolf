@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+
+<head>
+    <title>Werewolf by McToel</title>
+    <link rel="stylesheet" type="text/css" href="static/styles/werewolf.css">
+</head>
+
+<body id='main_body'>
+    <div class="table_container">
+        <table class="tg">
+            <tr>
+                <th>Your name</th>
+                <th>Your role</th>
+                <th>Your last Message</th>
+            </tr>
+            <tr>
+                <th id="username_head" class="username"></th>
+                <th id="role_head"></th>
+                <td id="msg_head"></td>
+            </tr>
+        </table>
+        <div style="height: 20px;"></div>
+        <table class="tg" id="main_table">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Vote</th>
+                    <th>Votes</th>
+                    <th>Send Message</th>
+                </tr>
+            </thead>
+            <tbody id="user_table">
+            </tbody>
+        </table><br />
+        <form action="logout">
+            <button style="width: 100%;" type="submit" value="logout">Logout</button>
+        </form><br /><br />
+    </div>
+</body>
+
+<!-- SocketIO -->
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<!-- SocketIO -->
+<script src="static/js/common_functions.js"></script>
+
+<script>
+    function private_vote() {
+        socket.emit('private_vote', {
+            "target_user": event.target.parentElement['target_user'].value
+        })
+    }
+
+    function public_vote() {
+        socket.emit('public_vote', {
+            "target_user": event.target.parentElement['target_user'].value
+        })
+    }
+
+    function user_table_row(data) {
+        current_user = data['name'];
+        var row = '<tr id="' + current_user + '_row">';
+        //Username
+        row += '<th id="' + current_user + '_name" class="username">' + current_user + '</th>';
+        // vote buttons
+        row += '<td id="' + current_user + '_vote_buttons">';
+        row += '<div class="button_container">';
+        row +=     '<form class="pretty_form"><button type="button" onclick="private_vote();" name="target_user" value="' + current_user + '">Private</button></form>';
+        row +=     '<form class="pretty_form"><button type="button" onclick="public_vote();" name="target_user" value="' + current_user + '">Public</button></form>';
+        row += '</div>';
+        row += '</td>';
+        // votes 
+        row += '<td><div id="' + current_user + '_votes" class="votes"></div></td>';
+        // send msg
+        row += '<td><form class="pretty_form"><input class="pretty_textbox" type="text" placeholder="Message" name="msg"></input><button type="button" onclick="send_msg();" name="target_user" value="' + current_user + '">Send</button></form></td>'
+        row += '</tr>'
+        return row;
+    }
+
+    socket.on('kill_user', function (data) {
+        var user = data['target']
+        document.getElementById(user + '_name').innerHTML = '<del>' + user + '</del>';
+        document.getElementById(user + '_vote_buttons').innerHTML = '';
+        // document.getElementById(user + '_public_vote_button').innerHTML = '';
+    });
+
+    socket.on('set_role', function (data) {
+        role = data['role'];
+        display_head();
+    });
+</script>
+
+</html>

@@ -1,0 +1,26 @@
+<div style="display: contents;">
+<!-- Username -->
+<div v-if="alive" class="username">{{ name }}</div>
+<div v-else><del>{{ name }}</del></div>
+<!-- vote buttons -->
+<div>
+    <div v-if="alive" class="button_container">
+        <button class="pretty_button" type="button" v-on:click="private_vote">Private</button>
+        <button class="pretty_button" type="button" v-on:click="public_vote">Public</button>
+    </div>
+</div>
+<!-- votes -->
+<div>
+    <div v-for='voter in voters'>
+        <span>
+            <div class="username voter"> {{ voter }} </div><br />
+        </span>
+    </div>
+</div>
+<!-- Send msg -->
+<div>
+    <div>
+        <input v-model="message" class="pretty_textbox" placeholder="message" v-on:keyup.enter="send_message">
+    </div>
+</div>
+</div>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<head>
+    <title>Werewolf by McToel</title>
+    <link rel="stylesheet" type="text/css" href="static/styles/werewolf.css">
+</head>
+
+<body id='main_body'>
+    <div class="table_container">
+        <table class="tg">
+            <tr>
+                <th>Your name</th>
+                <th>Your role</th>
+                <th>Your last Message</th>
+            </tr>
+            <tr>
+                <th id="username_head" class="username">gamemaster</th>
+                <th id="role_head">gamemaster</th>
+                <td id="msg_head">Hello World</td>
+            </tr>
+        </table>
+        <div style="height: 20px;"></div>
+        <table class="tg" id="main_table">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Role</th>
+                    <th>Votes</th>
+                    <th>Buttons</th>
+                    <th>Send Message</th>
+                </tr>
+            </thead>
+            <tbody id="user_table">
+            </tbody>
+        </table><br/>
+        <button style="width: 100%; margin: 0.1em;" type="button" onclick="reset_votes();">Reset Votes</button><br />
+        <form action="logout">
+            <button style="width: 100%;  margin: 0.1em;" type="submit" value="logout">Logout</button>
+        </form><br /><br/>
+
+        <h1 style="width: 100%; text-align: center;">Game Settings</h1>
+        <input style="width: 100%;" class="pretty_textbox" type="text" placeholder="Role" id="role_text_box"><br />
+        <div style="display: flex;">
+        <button style="width: 49%; margin-right: auto;" type="button" id="add" value="Add">Add</button>
+        <button style="width: 49%;" type="button" id="remove" value="Remove">Remove</button>
+        </div>
+        <br />
+        <select id="selected_roles" size="4" multiple="multiple" style="height : 200px; width: 100%;"></select><br />
+        <button style="width: 100%;" type="button" onclick="set_roles();">Set Roles</button><br />
+    </div>
+</body>
+
+<!-- SocketIO -->
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<!-- SocketIO -->
+<script src="static/js/common_functions.js"></script>
+
+<script>
+    $(function () {
+        $('#add').click(function () {
+            var inner_html = '<option value="' + $('#role_text_box').val() + '">' + $('#role_text_box').val() + '</option>'
+            $("#selected_roles").append(inner_html);
+        });
+    });
+
+    $('#remove').click(function () {
+        $("#selected_roles option:selected").remove();
+    });
+
+    function set_roles() {
+        var select = document.getElementById("selected_roles");
+        var roles = [];
+        for (var i = 0; i < select.options.length; i++) {
+            roles.push(select.options[i].value);
+        }
+        socket.emit('set_roles', {
+            "roles": roles
+        })
+    }
+
+    function reset_votes() {
+        socket.emit('reset_votes')
+    }
+
+    function kill() {
+        socket.emit('kill', {
+            "target_user": event.target.parentElement['target_user'].value
+        })
+    }
+
+    function poke() {
+        socket.emit('poke', {
+            "target_user": event.target.parentElement['target_user'].value
+        })
+    }
+
+    function user_table_row(data) {
+        var current_user = data['name'];
+        var row = '<tr id="' + current_user + '_row">';
+        //Username
+        row += '<th id="' + current_user + '_name" class="username">' + current_user + '</th>';
+        //Role
+        row += '<td id="' + current_user + '_role">' + data['role'] + '</td>'
+        // votes 
+        row += '<td><div id="' + current_user + '_votes" style="width: max-content;"></div></td>';
+        // buttons
+        row += '<td id="' + current_user + '_buttons">';
+        row +=   '<div class="button_container">';
+        row +=     '<form class="pretty_form"><button type="button" onclick="poke();" name="target_user" value="' + current_user + '">Poke</button></form>';
+        row +=     '<form class="pretty_form"><button type="button" onclick="kill();" name="target_user" value="' + current_user + '">Kill</button></form>';
+        row +=   '</div>';
+        row += '</td>';
+        // send msg
+        row += '<td><form class="pretty_form"><input class="pretty_textbox" type="text" placeholder="Message" name="msg"></input><button type="button" onclick="send_msg();" name="target_user" value="' + current_user + '">Send</button></form></td>'
+        row += '</tr>'
+        return row;
+    }
+
+    socket.on('kill_user', function (data) {
+        var user = data['target']
+        document.getElementById(user + '_name').innerHTML = '<del>' + user + '</del>';
+        document.getElementById(user + '_buttons').innerHTML = '';
+        // document.getElementById(user + '_kill_button').innerHTML = '';
+    });
+
+    socket.on('set_role', function (data) {
+        user = data['name']
+        try {
+            document.getElementById(user + '_role').innerHTML = data['role'];
+        } catch (error) { }
+    });
+</script>
+
+</html>
